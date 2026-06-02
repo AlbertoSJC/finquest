@@ -2,6 +2,7 @@
 
 import { CategoryBar } from '@/components/dashboard/CategoryBar';
 import { CompletionPie } from '@/components/dashboard/CompletionPie';
+import { PlayerSummary } from '@/components/dashboard/PlayerSummary';
 import { ProgressLine } from '@/components/dashboard/ProgressLine';
 import { usePlayerStore } from '@/stores/player';
 import Link from 'next/link';
@@ -28,6 +29,7 @@ export default function Dashboard() {
         </div>
 
         <section className="dashboard-grid">
+          <PlayerSummary player={player} />
           <CompletionPie player={player} />
           <CategoryBar player={player} />
           <ProgressLine player={player} />

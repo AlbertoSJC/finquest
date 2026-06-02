@@ -11,13 +11,14 @@ import { QuestFilter } from '@/components/quests/QuestFilter';
 import { useQuestFilter } from '@/hooks/useQuestFilter';
 
 export default function QuestsPage() {
-  const { player, addQuest, updateQuestProgress } = usePlayerStore();
+  const { player, addQuest, editQuest, deleteQuest, updateQuestProgress } = usePlayerStore();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<QuestStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<QuestPriority | 'all'>('all');
   const [categoryFilter, setCategoryFilter] = useState<FinancialCategory | 'all'>('all');
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'progress'>('dueDate');
+  const [editingQuest, setEditingQuest] = useState<Quest | null>(null);
   const [updatingQuestId, setUpdatingQuestId] = useState<string | null>(null);
   const [progressInput, setProgressInput] = useState('');
   const [progressError, setProgressError] = useState<string | null>(null);
@@ -91,6 +92,34 @@ export default function QuestsPage() {
     setProgressError(null);
   }, []);
 
+  const handleEditQuest = useCallback((quest: Quest) => {
+    setShowCreateForm(false);
+    setEditingQuest(quest);
+  }, []);
+
+  const handleSaveEdit = useCallback(
+    (questData: {
+      title: string;
+      description: string;
+      category: FinancialCategory;
+      targetAmount: number;
+      dueDate: Date;
+      priority: QuestPriority;
+    }) => {
+      if (!editingQuest) return;
+      editQuest(editingQuest.id, questData);
+      setEditingQuest(null);
+    },
+    [editingQuest, editQuest]
+  );
+
+  const handleDeleteQuest = useCallback(
+    (questId: string) => {
+      deleteQuest(questId);
+    },
+    [deleteQuest]
+  );
+
   if (!player) {
     return <div className="loading">Loading...</div>;
   }
@@ -114,7 +143,10 @@ export default function QuestsPage() {
           </div>
           <button
             className="btn btn-primary"
-            onClick={() => setShowCreateForm(!showCreateForm)}
+            onClick={() => {
+              setShowCreateForm((prev) => !prev);
+              setEditingQuest(null);
+            }}
           >
             {showCreateForm ? 'Cancel' : '+ Create Quest'}
           </button>
@@ -125,6 +157,17 @@ export default function QuestsPage() {
             <QuestForm
               onSubmit={handleCreateQuest}
               onCancel={() => setShowCreateForm(false)}
+            />
+          </div>
+        )}
+
+        {editingQuest && (
+          <div className="create-form-container">
+            <QuestForm
+              key={editingQuest.id}
+              initialData={editingQuest}
+              onSubmit={handleSaveEdit}
+              onCancel={() => setEditingQuest(null)}
             />
           </div>
         )}
@@ -182,6 +225,8 @@ export default function QuestsPage() {
                 <h2>Active Quests</h2>
                 <QuestGrid
                   quests={filteredQuests.filter((q) => q.status === QuestStatus.Active)}
+                  onEdit={handleEditQuest}
+                  onDelete={handleDeleteQuest}
                   onUpdateProgress={handleUpdateProgress}
                 />
               </section>
@@ -192,6 +237,7 @@ export default function QuestsPage() {
                 <h2>Completed Quests</h2>
                 <QuestGrid
                   quests={filteredQuests.filter((q) => q.status === QuestStatus.Completed)}
+                  onDelete={handleDeleteQuest}
                   emptyMessage="No completed quests yet"
                 />
               </section>

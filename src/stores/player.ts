@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { Player } from '@/domain/Player';
 import { Quest } from '@/domain/Quest';
 import { getDefaultAchievements } from '@/utils/fixtures';
-import { AchievementRequirementType, FinancialCategory, QuestStatus } from '@/enums/finquestEnums';
+import { AchievementRequirementType, FinancialCategory, QuestPriority, QuestStatus } from '@/enums/finquestEnums';
 import { useNotificationStore } from '@/stores/notification';
 
 function clonePlayer(player: Player): Player {
@@ -58,12 +58,23 @@ function checkAchievements(player: Player): void {
   });
 }
 
+interface QuestUpdates {
+  title: string;
+  description: string;
+  category: FinancialCategory;
+  targetAmount: number;
+  dueDate: Date;
+  priority: QuestPriority;
+}
+
 interface PlayerState {
   player: Player | null;
   isLoading: boolean;
   error: string | null;
   initializePlayer: (player: Player) => void;
   addQuest: (quest: Quest) => void;
+  editQuest: (questId: string, updates: QuestUpdates) => void;
+  deleteQuest: (questId: string) => void;
   updateQuestProgress: (questId: string, amount: number) => void;
   completeQuest: (questId: string) => void;
   setError: (error: string | null) => void;
@@ -84,6 +95,28 @@ export const usePlayerStore = create<PlayerState>((set) => ({
     set((state) => {
       if (!state.player) return state;
       state.player.addQuest(quest);
+      return { player: clonePlayer(state.player) };
+    }),
+
+  editQuest: (questId, updates) =>
+    set((state) => {
+      if (!state.player) return state;
+      const quest = state.player.quests.find((q) => q.id === questId);
+      if (quest) {
+        quest.title = updates.title;
+        quest.description = updates.description;
+        quest.category = updates.category;
+        quest.targetAmount = updates.targetAmount;
+        quest.dueDate = updates.dueDate;
+        quest.priority = updates.priority;
+      }
+      return { player: clonePlayer(state.player) };
+    }),
+
+  deleteQuest: (questId) =>
+    set((state) => {
+      if (!state.player) return state;
+      state.player.quests = state.player.quests.filter((q) => q.id !== questId);
       return { player: clonePlayer(state.player) };
     }),
 
