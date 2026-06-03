@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import Link from 'next/link';
 import { usePlayerStore } from '@/stores/player';
 import { Quest } from '@/domain/Quest';
 import { QuestStatus, QuestPriority, FinancialCategory } from '@/enums/finquestEnums';
@@ -11,7 +10,7 @@ import { QuestFilter } from '@/components/quests/QuestFilter';
 import { useQuestFilter } from '@/hooks/useQuestFilter';
 
 export default function QuestsPage() {
-  const { player, addQuest, editQuest, deleteQuest, updateQuestProgress } = usePlayerStore();
+  const { player, addQuest, editQuest, deleteQuest, updateQuestProgress, completeQuest } = usePlayerStore();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<QuestStatus | 'all'>('all');
@@ -120,6 +119,13 @@ export default function QuestsPage() {
     [deleteQuest]
   );
 
+  const handleCompleteQuest = useCallback(
+    (questId: string) => {
+      completeQuest(questId);
+    },
+    [completeQuest]
+  );
+
   if (!player) {
     return <div className="loading">Loading...</div>;
   }
@@ -130,10 +136,6 @@ export default function QuestsPage() {
   return (
     <main>
       <div className="container">
-        <Link href="/" className="btn-back">
-          ← Back
-        </Link>
-
         <div className="page-header">
           <div>
             <h1>Quests</h1>
@@ -228,6 +230,7 @@ export default function QuestsPage() {
                   onEdit={handleEditQuest}
                   onDelete={handleDeleteQuest}
                   onUpdateProgress={handleUpdateProgress}
+                  onComplete={handleCompleteQuest}
                 />
               </section>
             )}

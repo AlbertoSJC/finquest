@@ -2,14 +2,38 @@ import { Achievement } from '@/domain/Achievement';
 import { Quest } from '@/domain/Quest';
 import { AchievementRarity, AchievementRequirementType, FinancialCategory, QuestPriority } from '@/enums/finquestEnums';
 
+export const CATEGORY_META: Record<FinancialCategory, { icon: string; color: string; label: string }> = {
+  [FinancialCategory.Savings]: { icon: '💰', color: '#10b981', label: 'Savings' },
+  [FinancialCategory.Investing]: { icon: '📈', color: '#6366f1', label: 'Investing' },
+  [FinancialCategory.DebtPayoff]: { icon: '💳', color: '#ef4444', label: 'Debt Payoff' },
+  [FinancialCategory.Budgeting]: { icon: '📊', color: '#f59e0b', label: 'Budgeting' },
+  [FinancialCategory.Learning]: { icon: '📚', color: '#8b5cf6', label: 'Learning' },
+};
+
 export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
   new Achievement({
     id: 'first-quest',
     title: 'Quest Starter',
-    description: 'Complete your first quest',
+    description: 'Complete your first financial quest',
     icon: '🎯',
     rarity: AchievementRarity.Common,
     requirements: { type: AchievementRequirementType.Milestone, value: 1 },
+  }),
+  new Achievement({
+    id: 'quest-veteran',
+    title: 'Quest Veteran',
+    description: 'Complete 10 quests',
+    icon: '⚔️',
+    rarity: AchievementRarity.Rare,
+    requirements: { type: AchievementRequirementType.Milestone, value: 10 },
+  }),
+  new Achievement({
+    id: 'level-3',
+    title: 'Rising Adventurer',
+    description: 'Reach level 3',
+    icon: '🌟',
+    rarity: AchievementRarity.Common,
+    requirements: { type: AchievementRequirementType.Milestone, value: 3 },
   }),
   new Achievement({
     id: 'level-5',
@@ -20,6 +44,14 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     requirements: { type: AchievementRequirementType.Milestone, value: 5 },
   }),
   new Achievement({
+    id: 'level-10',
+    title: 'Financial Hero',
+    description: 'Reach level 10',
+    icon: '👑',
+    rarity: AchievementRarity.Legendary,
+    requirements: { type: AchievementRequirementType.Milestone, value: 10 },
+  }),
+  new Achievement({
     id: 'saving-hero',
     title: 'Saving Hero',
     description: 'Complete 5 savings quests',
@@ -27,18 +59,67 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     rarity: AchievementRarity.Epic,
     requirements: { type: AchievementRequirementType.Challenge, value: 5 },
   }),
+  new Achievement({
+    id: 'investor',
+    title: 'The Investor',
+    description: 'Complete 3 investing quests',
+    icon: '📈',
+    rarity: AchievementRarity.Rare,
+    requirements: { type: AchievementRequirementType.Challenge, value: 3 },
+  }),
+  new Achievement({
+    id: 'debt-slayer',
+    title: 'Debt Slayer',
+    description: 'Complete 3 debt payoff quests',
+    icon: '⚡',
+    rarity: AchievementRarity.Epic,
+    requirements: { type: AchievementRequirementType.Challenge, value: 3 },
+  }),
+  new Achievement({
+    id: 'budget-master',
+    title: 'Budget Master',
+    description: 'Complete 3 budgeting quests',
+    icon: '📊',
+    rarity: AchievementRarity.Rare,
+    requirements: { type: AchievementRequirementType.Challenge, value: 3 },
+  }),
+  new Achievement({
+    id: 'scholar',
+    title: 'Financial Scholar',
+    description: 'Complete 3 learning quests',
+    icon: '📚',
+    rarity: AchievementRarity.Rare,
+    requirements: { type: AchievementRequirementType.Learning, value: 3 },
+  }),
+  new Achievement({
+    id: 'coin-collector',
+    title: 'Coin Collector',
+    description: 'Accumulate 1,000 coins',
+    icon: '🪙',
+    rarity: AchievementRarity.Rare,
+    requirements: { type: AchievementRequirementType.Milestone, value: 1000 },
+  }),
+  new Achievement({
+    id: 'high-roller',
+    title: 'High Roller',
+    description: 'Accumulate 5,000 coins',
+    icon: '💎',
+    rarity: AchievementRarity.Legendary,
+    requirements: { type: AchievementRequirementType.Milestone, value: 5000 },
+  }),
 ];
 
 export function getDefaultAchievements(): Achievement[] {
-  return DEFAULT_ACHIEVEMENTS.map((achievement) =>
-    new Achievement({
-      id: achievement.id,
-      title: achievement.title,
-      description: achievement.description,
-      icon: achievement.icon,
-      rarity: achievement.rarity,
-      requirements: { ...achievement.requirements },
-    })
+  return DEFAULT_ACHIEVEMENTS.map(
+    (a) =>
+      new Achievement({
+        id: a.id,
+        title: a.title,
+        description: a.description,
+        icon: a.icon,
+        rarity: a.rarity,
+        requirements: { ...a.requirements },
+      })
   );
 }
 
@@ -47,7 +128,7 @@ export function createDemoQuests(): Quest[] {
     new Quest({
       id: 'q1',
       title: 'Build Emergency Fund',
-      description: 'Save $1000 for unexpected expenses',
+      description: 'Save $1,000 for unexpected expenses — your financial safety net.',
       category: FinancialCategory.Savings,
       targetAmount: 1000,
       dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
@@ -56,13 +137,53 @@ export function createDemoQuests(): Quest[] {
     }),
     new Quest({
       id: 'q2',
-      title: 'Create a Budget',
-      description: 'Track your spending for this month',
+      title: 'Monthly Budget Plan',
+      description: 'Create and follow a monthly budget to track every dollar.',
       category: FinancialCategory.Budgeting,
       targetAmount: 100,
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       priority: QuestPriority.Medium,
       rewards: { experience: 200, coins: 100 },
+    }),
+    new Quest({
+      id: 'q3',
+      title: 'First ETF Investment',
+      description: 'Open a brokerage account and invest in a low-cost index fund.',
+      category: FinancialCategory.Investing,
+      targetAmount: 500,
+      dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+      priority: QuestPriority.Medium,
+      rewards: { experience: 350, coins: 175 },
+    }),
+    new Quest({
+      id: 'q4',
+      title: 'Pay Off Credit Card',
+      description: 'Eliminate your highest-interest credit card balance.',
+      category: FinancialCategory.DebtPayoff,
+      targetAmount: 800,
+      dueDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000),
+      priority: QuestPriority.High,
+      rewards: { experience: 600, coins: 300 },
+    }),
+    new Quest({
+      id: 'q5',
+      title: 'Read "The Millionaire Next Door"',
+      description: 'Complete this personal finance classic to level up your money mindset.',
+      category: FinancialCategory.Learning,
+      targetAmount: 1,
+      dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+      priority: QuestPriority.Low,
+      rewards: { experience: 150, coins: 75 },
+    }),
+    new Quest({
+      id: 'q6',
+      title: 'Vacation Fund',
+      description: 'Save $2,000 for a well-deserved vacation next year.',
+      category: FinancialCategory.Savings,
+      targetAmount: 2000,
+      dueDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000),
+      priority: QuestPriority.Low,
+      rewards: { experience: 800, coins: 400 },
     }),
   ];
 }

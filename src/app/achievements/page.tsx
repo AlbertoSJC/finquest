@@ -1,7 +1,6 @@
 'use client';
 
 import { usePlayerStore } from '@/stores/player';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { getDefaultAchievements } from '@/utils/fixtures';
 
@@ -36,10 +35,6 @@ export default function Achievements() {
   return (
     <main>
       <div className="container">
-        <Link href="/" className="btn-back">
-          ← Back
-        </Link>
-
         <h1>Achievements</h1>
 
         <div className="achievements-header">

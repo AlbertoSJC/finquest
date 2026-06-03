@@ -5,7 +5,6 @@ import { CompletionPie } from '@/components/dashboard/CompletionPie';
 import { PlayerSummary } from '@/components/dashboard/PlayerSummary';
 import { ProgressLine } from '@/components/dashboard/ProgressLine';
 import { usePlayerStore } from '@/stores/player';
-import Link from 'next/link';
 
 export default function Dashboard() {
   const { player } = usePlayerStore();
@@ -17,10 +16,6 @@ export default function Dashboard() {
   return (
     <main>
       <div className="container">
-        <Link href="/" className="btn-back">
-          ← Back
-        </Link>
-
         <div className="page-header">
           <div>
             <h1>Dashboard</h1>
