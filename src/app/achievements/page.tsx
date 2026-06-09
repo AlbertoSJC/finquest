@@ -1,14 +1,22 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { usePlayerStore } from '@/stores/player';
 import { motion } from 'framer-motion';
-import { getDefaultAchievements } from '@/utils/fixtures';
+import { getDefaultAchievements, getAchievementProgress } from '@/utils/fixtures';
+import { ProgressBar } from '@/components/common/ProgressBar';
 
 export default function Achievements() {
-  const { player } = usePlayerStore();
+  const { player, _hasHydrated } = usePlayerStore();
+  const router = useRouter();
 
-  if (!player) {
-    return <div>Loading...</div>;
+  useEffect(() => {
+    if (_hasHydrated && !player) router.replace('/');
+  }, [_hasHydrated, player, router]);
+
+  if (!_hasHydrated || !player) {
+    return <div className="loading">Loading...</div>;
   }
 
   const allAchievements = getDefaultAchievements();
@@ -115,20 +123,37 @@ export default function Achievements() {
             <div className="achievements-grid">
               {allAchievements
                 .filter((ach) => !player.achievements.find((a) => a.id === ach.id))
-                .map((achievement) => (
-                  <div key={achievement.id} className="achievement-card locked">
-                    <div className="achievement-icon-locked">{achievement.icon}</div>
-                    <div className="achievement-content">
-                      <h3>{achievement.title}</h3>
-                      <p>{achievement.description}</p>
-                      <div className="achievement-footer">
-                        <span className={`rarity ${achievement.rarity.toLowerCase()}`}>
-                          {achievement.rarity}
-                        </span>
+                .map((achievement) => {
+                  const progress = getAchievementProgress(achievement.id, player);
+                  return (
+                    <div key={achievement.id} className="achievement-card locked">
+                      <div className="achievement-icon-locked">{achievement.icon}</div>
+                      <div className="achievement-content">
+                        <h3>{achievement.title}</h3>
+                        <p>{achievement.description}</p>
+                        {progress && (
+                          <div className="achievement-progress">
+                            <div className="achievement-progress-meta">
+                              <span className="achievement-progress-label">{progress.label}</span>
+                              <span className="achievement-progress-count">{progress.current} / {progress.total}</span>
+                            </div>
+                            <ProgressBar
+                              current={progress.current}
+                              target={progress.total}
+                              variant="mini"
+                              showLabel={false}
+                            />
+                          </div>
+                        )}
+                        <div className="achievement-footer">
+                          <span className={`rarity ${achievement.rarity.toLowerCase()}`}>
+                            {achievement.rarity}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </section>
         )}

@@ -1,6 +1,7 @@
 import { Achievement } from '@/domain/Achievement';
 import { Quest } from '@/domain/Quest';
-import { AchievementRarity, AchievementRequirementType, FinancialCategory, QuestPriority } from '@/enums/finquestEnums';
+import { Player } from '@/domain/Player';
+import { AchievementRarity, AchievementRequirementType, FinancialCategory, QuestPriority, QuestStatus } from '@/enums/finquestEnums';
 
 export const CATEGORY_META: Record<FinancialCategory, { icon: string; color: string; label: string }> = {
   [FinancialCategory.Savings]: { icon: '💰', color: '#10b981', label: 'Savings' },
@@ -108,6 +109,49 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     requirements: { type: AchievementRequirementType.Milestone, value: 5000 },
   }),
 ];
+
+export interface AchievementProgress {
+  current: number;
+  total: number;
+  label: string;
+}
+
+export function getAchievementProgress(achievementId: string, player: Player): AchievementProgress | null {
+  const completed = player.quests.filter((q) => q.status === QuestStatus.Completed);
+  const completedCount = completed.length;
+
+  const byCategory = (cat: FinancialCategory) =>
+    completed.filter((q) => q.category === cat).length;
+
+  switch (achievementId) {
+    case 'first-quest':
+      return { current: Math.min(completedCount, 1), total: 1, label: 'quest completed' };
+    case 'quest-veteran':
+      return { current: Math.min(completedCount, 10), total: 10, label: 'quests completed' };
+    case 'level-3':
+      return { current: Math.min(player.level, 3), total: 3, label: 'level reached' };
+    case 'level-5':
+      return { current: Math.min(player.level, 5), total: 5, label: 'level reached' };
+    case 'level-10':
+      return { current: Math.min(player.level, 10), total: 10, label: 'level reached' };
+    case 'saving-hero':
+      return { current: Math.min(byCategory(FinancialCategory.Savings), 5), total: 5, label: 'savings quests done' };
+    case 'investor':
+      return { current: Math.min(byCategory(FinancialCategory.Investing), 3), total: 3, label: 'investing quests done' };
+    case 'debt-slayer':
+      return { current: Math.min(byCategory(FinancialCategory.DebtPayoff), 3), total: 3, label: 'debt quests done' };
+    case 'budget-master':
+      return { current: Math.min(byCategory(FinancialCategory.Budgeting), 3), total: 3, label: 'budgeting quests done' };
+    case 'scholar':
+      return { current: Math.min(byCategory(FinancialCategory.Learning), 3), total: 3, label: 'learning quests done' };
+    case 'coin-collector':
+      return { current: Math.min(player.coins, 1000), total: 1000, label: 'coins earned' };
+    case 'high-roller':
+      return { current: Math.min(player.coins, 5000), total: 5000, label: 'coins earned' };
+    default:
+      return null;
+  }
+}
 
 export function getDefaultAchievements(): Achievement[] {
   return DEFAULT_ACHIEVEMENTS.map(

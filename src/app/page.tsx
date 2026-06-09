@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Player } from '@/domain/Player';
 import { usePlayerStore } from '@/stores/player';
 import { createDemoQuests } from '@/utils/fixtures';
+import { ProgressBar } from '@/components/common/ProgressBar';
 import Link from 'next/link';
 
 const FEATURES = [
@@ -96,12 +97,16 @@ function WelcomeHome({ player }: { player: Player }) {
     <main>
       <div className="container">
         <div className="home-banner">
-          <div className="home-banner-content">
-            <h1 className="home-banner-title">Welcome back, {player.username}!</h1>
-            <div className="home-banner-meta">
-              <span className="player-level-badge">Level {player.level}</span>
-              <span className="home-banner-xp">{xpIntoLevel} / 1000 XP to next level</span>
+          <h1 className="home-banner-title">Welcome back, {player.username}!</h1>
+          <div className="home-banner-meta">
+            <span className="player-level-badge">Level {player.level}</span>
+          </div>
+          <div className="home-banner-xp-section">
+            <div className="home-banner-xp-row">
+              <span>Experience</span>
+              <span>{xpIntoLevel} / 1000 XP to level {player.level + 1}</span>
             </div>
+            <ProgressBar current={xpIntoLevel} target={1000} variant="banner" showLabel={false} />
           </div>
         </div>
 

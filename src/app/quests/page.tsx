@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { usePlayerStore } from '@/stores/player';
 import { Quest } from '@/domain/Quest';
 import { QuestStatus, QuestPriority, FinancialCategory } from '@/enums/finquestEnums';
@@ -10,7 +11,8 @@ import { QuestFilter } from '@/components/quests/QuestFilter';
 import { useQuestFilter } from '@/hooks/useQuestFilter';
 
 export default function QuestsPage() {
-  const { player, addQuest, editQuest, deleteQuest, updateQuestProgress, completeQuest } = usePlayerStore();
+  const { player, _hasHydrated, addQuest, editQuest, deleteQuest, updateQuestProgress, completeQuest } = usePlayerStore();
+  const router = useRouter();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<QuestStatus | 'all'>('all');
@@ -126,7 +128,11 @@ export default function QuestsPage() {
     [completeQuest]
   );
 
-  if (!player) {
+  useEffect(() => {
+    if (_hasHydrated && !player) router.replace('/');
+  }, [_hasHydrated, player, router]);
+
+  if (!_hasHydrated || !player) {
     return <div className="loading">Loading...</div>;
   }
 

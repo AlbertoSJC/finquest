@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { usePlayerStore } from '@/stores/player';
+import { useTheme } from '@/hooks/useTheme';
 
 const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -13,6 +14,7 @@ const NAV_LINKS = [
 export function Navbar() {
   const pathname = usePathname();
   const { player } = usePlayerStore();
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <nav className="navbar">
@@ -34,12 +36,22 @@ export function Navbar() {
           ))}
         </div>
 
-        {player && (
-          <div className="navbar-player">
-            <span className="navbar-level">Lv {player.level}</span>
-            <span className="navbar-coins">🪙 {player.coins.toLocaleString()}</span>
-          </div>
-        )}
+        <div className="navbar-player">
+          {player && (
+            <>
+              <span className="navbar-level">Lv {player.level}</span>
+              <span className="navbar-coins">🪙 {player.coins.toLocaleString()}</span>
+            </>
+          )}
+          <button
+            className="navbar-theme-toggle"
+            onClick={toggleTheme}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDark ? 'Light mode' : 'Dark mode'}
+          >
+            {isDark ? '☀️' : '🌙'}
+          </button>
+        </div>
       </div>
     </nav>
   );

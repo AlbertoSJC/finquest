@@ -1,15 +1,23 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { CategoryBar } from '@/components/dashboard/CategoryBar';
 import { CompletionPie } from '@/components/dashboard/CompletionPie';
+import { FinancialMetrics } from '@/components/dashboard/FinancialMetrics';
 import { PlayerSummary } from '@/components/dashboard/PlayerSummary';
 import { ProgressLine } from '@/components/dashboard/ProgressLine';
 import { usePlayerStore } from '@/stores/player';
 
 export default function Dashboard() {
-  const { player } = usePlayerStore();
+  const { player, _hasHydrated } = usePlayerStore();
+  const router = useRouter();
 
-  if (!player) {
+  useEffect(() => {
+    if (_hasHydrated && !player) router.replace('/');
+  }, [_hasHydrated, player, router]);
+
+  if (!_hasHydrated || !player) {
     return <div className="loading">Loading dashboard...</div>;
   }
 
@@ -22,6 +30,8 @@ export default function Dashboard() {
             <p className="page-subtitle">Visualize your progress and financial goals.</p>
           </div>
         </div>
+
+        <FinancialMetrics player={player} />
 
         <section className="dashboard-grid">
           <PlayerSummary player={player} />
