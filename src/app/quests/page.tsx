@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'motion/react';
 import { usePlayerStore } from '@/stores/player';
 import { Quest } from '@/domain/Quest';
 import { QuestStatus, QuestPriority, FinancialCategory } from '@/enums/finquestEnums';
@@ -23,6 +24,7 @@ export default function QuestsPage() {
   const [updatingQuestId, setUpdatingQuestId] = useState<string | null>(null);
   const [progressInput, setProgressInput] = useState('');
   const [progressError, setProgressError] = useState<string | null>(null);
+  const [progressFloat, setProgressFloat] = useState<{ key: number; text: string } | null>(null);
 
   const filteredQuests = useQuestFilter({
     quests: player?.quests ?? [],
@@ -81,11 +83,18 @@ export default function QuestsPage() {
       return;
     }
 
+    const quest = player?.quests.find((q) => q.id === updatingQuestId);
+    const delta = quest ? amount - quest.currentAmount : 0;
+    const completes = quest ? amount >= quest.targetAmount : false;
+
     updateQuestProgress(updatingQuestId, amount);
+    if (delta > 0 && !completes) {
+      setProgressFloat({ key: Date.now(), text: `+$${delta.toLocaleString()} saved` });
+    }
     setUpdatingQuestId(null);
     setProgressInput('');
     setProgressError(null);
-  }, [progressInput, updatingQuestId, updateQuestProgress]);
+  }, [progressInput, updatingQuestId, updateQuestProgress, player]);
 
   const handleCancelProgress = useCallback(() => {
     setUpdatingQuestId(null);
@@ -208,6 +217,22 @@ export default function QuestsPage() {
             {progressError && <p className="form-error">{progressError}</p>}
           </div>
         )}
+
+        <AnimatePresence>
+          {progressFloat && (
+            <motion.div
+              key={progressFloat.key}
+              className="progress-float"
+              initial={{ opacity: 0, y: 0, scale: 0.9 }}
+              animate={{ opacity: [0, 1, 1, 0], y: -56, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.4, ease: 'easeOut', times: [0, 0.15, 0.75, 1] }}
+              onAnimationComplete={() => setProgressFloat(null)}
+            >
+              {progressFloat.text}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <QuestFilter
           searchTerm={searchTerm}

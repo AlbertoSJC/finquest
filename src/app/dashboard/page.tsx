@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CategoryBar } from '@/components/dashboard/CategoryBar';
 import { CompletionPie } from '@/components/dashboard/CompletionPie';
+import { DailyChallenge } from '@/components/dashboard/DailyChallenge';
+import { FinancialHealthScore } from '@/components/dashboard/FinancialHealthScore';
 import { FinancialMetrics } from '@/components/dashboard/FinancialMetrics';
 import { PlayerSummary } from '@/components/dashboard/PlayerSummary';
 import { ProgressLine } from '@/components/dashboard/ProgressLine';
@@ -31,9 +33,12 @@ export default function Dashboard() {
           </div>
         </div>
 
+        <DailyChallenge player={player} />
+
         <FinancialMetrics player={player} />
 
         <section className="dashboard-grid">
+          <FinancialHealthScore player={player} />
           <PlayerSummary player={player} />
           <CompletionPie player={player} />
           <CategoryBar player={player} />

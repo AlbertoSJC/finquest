@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Player } from '@/domain/Player';
 import { usePlayerStore } from '@/stores/player';
 import { createDemoQuests } from '@/utils/fixtures';
+import { getPlayerTitle } from '@/utils/titles';
 import { ProgressBar } from '@/components/common/ProgressBar';
 import Link from 'next/link';
 
@@ -100,6 +101,7 @@ function WelcomeHome({ player }: { player: Player }) {
           <h1 className="home-banner-title">Welcome back, {player.username}!</h1>
           <div className="home-banner-meta">
             <span className="player-level-badge">Level {player.level}</span>
+            <span className="player-title-badge">{getPlayerTitle(player)}</span>
           </div>
           <div className="home-banner-xp-section">
             <div className="home-banner-xp-row">
