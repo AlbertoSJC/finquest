@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Quest } from '@/domain/Quest';
 import { ProgressBar } from '@/components/common/ProgressBar';
 import { QuestStatus } from '@/enums/finquestEnums';

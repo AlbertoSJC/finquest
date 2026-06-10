@@ -5,8 +5,6 @@ interface Props {
   player: Player;
 }
 
-const XP_PER_LEVEL = 1000;
-
 export function FinancialMetrics({ player }: Props) {
   const totalSaved = player.quests.reduce((sum, q) => sum + q.currentAmount, 0);
   const totalGoal = player.quests.reduce((sum, q) => sum + q.targetAmount, 0);
