@@ -3,8 +3,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePlayerStore } from '@/stores/player';
-import { motion } from 'framer-motion';
-import { getDefaultAchievements, getAchievementProgress } from '@/utils/fixtures';
+import { motion } from 'motion/react';
+import { getDefaultAchievements } from '@/utils/fixtures';
+import { getAchievementProgress } from '@/utils/achievements';
 import { ProgressBar } from '@/components/common/ProgressBar';
 
 export default function Achievements() {
@@ -124,7 +125,7 @@ export default function Achievements() {
               {allAchievements
                 .filter((ach) => !player.achievements.find((a) => a.id === ach.id))
                 .map((achievement) => {
-                  const progress = getAchievementProgress(achievement.id, player);
+                  const progress = getAchievementProgress(achievement, player);
                   return (
                     <div key={achievement.id} className="achievement-card locked">
                       <div className="achievement-icon-locked">{achievement.icon}</div>

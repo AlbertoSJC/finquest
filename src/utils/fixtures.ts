@@ -1,7 +1,7 @@
 import { Achievement } from '@/domain/Achievement';
 import { Quest } from '@/domain/Quest';
-import { Player } from '@/domain/Player';
-import { AchievementRarity, AchievementRequirementType, FinancialCategory, QuestPriority, QuestStatus } from '@/enums/finquestEnums';
+import { AchievementMetric, AchievementRarity, AchievementRequirementType, DailyChallengeKind, FinancialCategory, QuestPriority } from '@/enums/finquestEnums';
+import { dayOfYear } from '@/utils/date';
 
 export const CATEGORY_META: Record<FinancialCategory, { icon: string; color: string; label: string }> = {
   [FinancialCategory.Savings]: { icon: '💰', color: '#10b981', label: 'Savings' },
@@ -18,7 +18,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Complete your first financial quest',
     icon: '🎯',
     rarity: AchievementRarity.Common,
-    requirements: { type: AchievementRequirementType.Milestone, value: 1 },
+    requirements: { type: AchievementRequirementType.Milestone, metric: AchievementMetric.QuestsCompleted, value: 1 },
   }),
   new Achievement({
     id: 'quest-veteran',
@@ -26,7 +26,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Complete 10 quests',
     icon: '⚔️',
     rarity: AchievementRarity.Rare,
-    requirements: { type: AchievementRequirementType.Milestone, value: 10 },
+    requirements: { type: AchievementRequirementType.Milestone, metric: AchievementMetric.QuestsCompleted, value: 10 },
   }),
   new Achievement({
     id: 'level-3',
@@ -34,7 +34,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Reach level 3',
     icon: '🌟',
     rarity: AchievementRarity.Common,
-    requirements: { type: AchievementRequirementType.Milestone, value: 3 },
+    requirements: { type: AchievementRequirementType.Milestone, metric: AchievementMetric.LevelReached, value: 3 },
   }),
   new Achievement({
     id: 'level-5',
@@ -42,7 +42,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Reach level 5',
     icon: '⭐',
     rarity: AchievementRarity.Rare,
-    requirements: { type: AchievementRequirementType.Milestone, value: 5 },
+    requirements: { type: AchievementRequirementType.Milestone, metric: AchievementMetric.LevelReached, value: 5 },
   }),
   new Achievement({
     id: 'level-10',
@@ -50,7 +50,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Reach level 10',
     icon: '👑',
     rarity: AchievementRarity.Legendary,
-    requirements: { type: AchievementRequirementType.Milestone, value: 10 },
+    requirements: { type: AchievementRequirementType.Milestone, metric: AchievementMetric.LevelReached, value: 10 },
   }),
   new Achievement({
     id: 'saving-hero',
@@ -58,7 +58,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Complete 5 savings quests',
     icon: '💰',
     rarity: AchievementRarity.Epic,
-    requirements: { type: AchievementRequirementType.Challenge, value: 5 },
+    requirements: { type: AchievementRequirementType.Challenge, metric: AchievementMetric.CategoryQuestsCompleted, category: FinancialCategory.Savings, value: 5 },
   }),
   new Achievement({
     id: 'investor',
@@ -66,7 +66,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Complete 3 investing quests',
     icon: '📈',
     rarity: AchievementRarity.Rare,
-    requirements: { type: AchievementRequirementType.Challenge, value: 3 },
+    requirements: { type: AchievementRequirementType.Challenge, metric: AchievementMetric.CategoryQuestsCompleted, category: FinancialCategory.Investing, value: 3 },
   }),
   new Achievement({
     id: 'debt-slayer',
@@ -74,7 +74,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Complete 3 debt payoff quests',
     icon: '⚡',
     rarity: AchievementRarity.Epic,
-    requirements: { type: AchievementRequirementType.Challenge, value: 3 },
+    requirements: { type: AchievementRequirementType.Challenge, metric: AchievementMetric.CategoryQuestsCompleted, category: FinancialCategory.DebtPayoff, value: 3 },
   }),
   new Achievement({
     id: 'budget-master',
@@ -82,7 +82,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Complete 3 budgeting quests',
     icon: '📊',
     rarity: AchievementRarity.Rare,
-    requirements: { type: AchievementRequirementType.Challenge, value: 3 },
+    requirements: { type: AchievementRequirementType.Challenge, metric: AchievementMetric.CategoryQuestsCompleted, category: FinancialCategory.Budgeting, value: 3 },
   }),
   new Achievement({
     id: 'scholar',
@@ -90,7 +90,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Complete 3 learning quests',
     icon: '📚',
     rarity: AchievementRarity.Rare,
-    requirements: { type: AchievementRequirementType.Learning, value: 3 },
+    requirements: { type: AchievementRequirementType.Learning, metric: AchievementMetric.CategoryQuestsCompleted, category: FinancialCategory.Learning, value: 3 },
   }),
   new Achievement({
     id: 'coin-collector',
@@ -98,7 +98,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Accumulate 1,000 coins',
     icon: '🪙',
     rarity: AchievementRarity.Rare,
-    requirements: { type: AchievementRequirementType.Milestone, value: 1000 },
+    requirements: { type: AchievementRequirementType.Milestone, metric: AchievementMetric.CoinsHeld, value: 1000 },
   }),
   new Achievement({
     id: 'high-roller',
@@ -106,51 +106,59 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     description: 'Accumulate 5,000 coins',
     icon: '💎',
     rarity: AchievementRarity.Legendary,
-    requirements: { type: AchievementRequirementType.Milestone, value: 5000 },
+    requirements: { type: AchievementRequirementType.Milestone, metric: AchievementMetric.CoinsHeld, value: 5000 },
+  }),
+  new Achievement({
+    id: 'streak-3',
+    title: 'Getting Warm',
+    description: 'Stay active 3 days in a row',
+    icon: '🔥',
+    rarity: AchievementRarity.Common,
+    requirements: { type: AchievementRequirementType.Streak, metric: AchievementMetric.StreakDays, value: 3 },
+  }),
+  new Achievement({
+    id: 'streak-7',
+    title: 'On Fire',
+    description: 'Stay active 7 days in a row',
+    icon: '🔥',
+    rarity: AchievementRarity.Rare,
+    requirements: { type: AchievementRequirementType.Streak, metric: AchievementMetric.StreakDays, value: 7 },
+  }),
+  new Achievement({
+    id: 'streak-30',
+    title: 'Unstoppable',
+    description: 'Stay active 30 days in a row',
+    icon: '🌋',
+    rarity: AchievementRarity.Legendary,
+    requirements: { type: AchievementRequirementType.Streak, metric: AchievementMetric.StreakDays, value: 30 },
   }),
 ];
 
-export interface AchievementProgress {
-  current: number;
-  total: number;
-  label: string;
+export interface DailyChallenge {
+  id: string;
+  kind: DailyChallengeKind;
+  title: string;
+  description: string;
+  icon: string;
 }
 
-export function getAchievementProgress(achievementId: string, player: Player): AchievementProgress | null {
-  const completed = player.quests.filter((q) => q.status === QuestStatus.Completed);
-  const completedCount = completed.length;
+export const DAILY_CHALLENGE_REWARD = { experience: 75, coins: 25 };
 
-  const byCategory = (cat: FinancialCategory) =>
-    completed.filter((q) => q.category === cat).length;
+export const DAILY_CHALLENGES: DailyChallenge[] = [
+  { id: 'dc-update', kind: DailyChallengeKind.UpdateProgress, title: 'Make a Move', description: 'Update progress on any quest', icon: '📈' },
+  { id: 'dc-create', kind: DailyChallengeKind.CreateQuest, title: 'New Horizons', description: 'Create a new quest', icon: '🗺️' },
+  { id: 'dc-complete', kind: DailyChallengeKind.CompleteQuest, title: 'Finish the Job', description: 'Complete any quest', icon: '🏁' },
+  { id: 'dc-savings', kind: DailyChallengeKind.CreateSavingsQuest, title: 'Pay Yourself First', description: 'Create a new savings quest', icon: '💰' },
+  { id: 'dc-half', kind: DailyChallengeKind.ReachHalf, title: 'Halfway Hero', description: 'Reach 50% on any active quest', icon: '⛰️' },
+  { id: 'dc-update-2', kind: DailyChallengeKind.UpdateProgress, title: 'Daily Deposit', description: 'Log progress on a quest today', icon: '🏦' },
+  { id: 'dc-create-2', kind: DailyChallengeKind.CreateQuest, title: 'Dream Bigger', description: 'Add another goal to your quest log', icon: '✨' },
+  { id: 'dc-half-2', kind: DailyChallengeKind.ReachHalf, title: 'Over the Hump', description: 'Push any quest past the 50% mark', icon: '🚀' },
+  { id: 'dc-complete-2', kind: DailyChallengeKind.CompleteQuest, title: 'Close the Loop', description: 'Bring a quest across the finish line', icon: '🎖️' },
+  { id: 'dc-update-3', kind: DailyChallengeKind.UpdateProgress, title: 'Keep the Flame', description: 'Make any progress update to keep your streak', icon: '🔥' },
+];
 
-  switch (achievementId) {
-    case 'first-quest':
-      return { current: Math.min(completedCount, 1), total: 1, label: 'quest completed' };
-    case 'quest-veteran':
-      return { current: Math.min(completedCount, 10), total: 10, label: 'quests completed' };
-    case 'level-3':
-      return { current: Math.min(player.level, 3), total: 3, label: 'level reached' };
-    case 'level-5':
-      return { current: Math.min(player.level, 5), total: 5, label: 'level reached' };
-    case 'level-10':
-      return { current: Math.min(player.level, 10), total: 10, label: 'level reached' };
-    case 'saving-hero':
-      return { current: Math.min(byCategory(FinancialCategory.Savings), 5), total: 5, label: 'savings quests done' };
-    case 'investor':
-      return { current: Math.min(byCategory(FinancialCategory.Investing), 3), total: 3, label: 'investing quests done' };
-    case 'debt-slayer':
-      return { current: Math.min(byCategory(FinancialCategory.DebtPayoff), 3), total: 3, label: 'debt quests done' };
-    case 'budget-master':
-      return { current: Math.min(byCategory(FinancialCategory.Budgeting), 3), total: 3, label: 'budgeting quests done' };
-    case 'scholar':
-      return { current: Math.min(byCategory(FinancialCategory.Learning), 3), total: 3, label: 'learning quests done' };
-    case 'coin-collector':
-      return { current: Math.min(player.coins, 1000), total: 1000, label: 'coins earned' };
-    case 'high-roller':
-      return { current: Math.min(player.coins, 5000), total: 5000, label: 'coins earned' };
-    default:
-      return null;
-  }
+export function getTodaysChallenge(date: Date = new Date()): DailyChallenge {
+  return DAILY_CHALLENGES[dayOfYear(date) % DAILY_CHALLENGES.length];
 }
 
 export function getDefaultAchievements(): Achievement[] {

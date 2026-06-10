@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Player } from '@/domain/Player';
+import { Player, StreakState } from '@/domain/Player';
 import { Quest } from '@/domain/Quest';
-import { Achievement } from '@/domain/Achievement';
-import { getDefaultAchievements } from '@/utils/fixtures';
-import { AchievementRarity, AchievementRequirementType, FinancialCategory, QuestPriority, QuestStatus } from '@/enums/finquestEnums';
+import { Achievement, AchievementRequirements } from '@/domain/Achievement';
+import { DAILY_CHALLENGE_REWARD, getDefaultAchievements, getTodaysChallenge } from '@/utils/fixtures';
+import { isAchievementEarned } from '@/utils/achievements';
+import { toDateKey } from '@/utils/date';
+import { AchievementRarity, DailyChallengeKind, FinancialCategory, QuestPriority, QuestStatus } from '@/enums/finquestEnums';
 import { useNotificationStore } from '@/stores/notification';
 
 function clonePlayer(player: Player): Player {
@@ -23,58 +25,61 @@ function notifyAchievementUnlocked(achievement: { title: string; description: st
   pushNotification('Achievement unlocked!', `${achievement.icon} ${achievement.title}: ${achievement.description}`);
 }
 
-function checkAchievements(player: Player): void {
-  const availableAchievements = getDefaultAchievements();
+function checkAchievements(player: Player): Achievement[] {
+  const unlocked: Achievement[] = [];
 
-  availableAchievements.forEach((achievement) => {
+  getDefaultAchievements().forEach((achievement) => {
     if (player.achievements.find((a) => a.id === achievement.id)) return;
 
-    let shouldUnlock = false;
-
-    switch (achievement.id) {
-      case 'first-quest':
-        shouldUnlock = player.getCompletedQuestsCount() >= 1;
-        break;
-      case 'quest-veteran':
-        shouldUnlock = player.getCompletedQuestsCount() >= 10;
-        break;
-      case 'level-3':
-        shouldUnlock = player.level >= 3;
-        break;
-      case 'level-5':
-        shouldUnlock = player.level >= 5;
-        break;
-      case 'level-10':
-        shouldUnlock = player.level >= 10;
-        break;
-      case 'saving-hero':
-        shouldUnlock = player.getCompletedQuestsByCategory(FinancialCategory.Savings) >= 5;
-        break;
-      case 'investor':
-        shouldUnlock = player.getCompletedQuestsByCategory(FinancialCategory.Investing) >= 3;
-        break;
-      case 'debt-slayer':
-        shouldUnlock = player.getCompletedQuestsByCategory(FinancialCategory.DebtPayoff) >= 3;
-        break;
-      case 'budget-master':
-        shouldUnlock = player.getCompletedQuestsByCategory(FinancialCategory.Budgeting) >= 3;
-        break;
-      case 'scholar':
-        shouldUnlock = player.getCompletedQuestsByCategory(FinancialCategory.Learning) >= 3;
-        break;
-      case 'coin-collector':
-        shouldUnlock = player.coins >= 1000;
-        break;
-      case 'high-roller':
-        shouldUnlock = player.coins >= 5000;
-        break;
-    }
-
-    if (shouldUnlock) {
+    if (isAchievementEarned(achievement, player)) {
       player.unlockAchievement(achievement);
       notifyAchievementUnlocked(achievement);
+      unlocked.push(achievement);
     }
   });
+
+  return unlocked;
+}
+
+function grantQuestRewards(player: Player, quest: Quest): void {
+  const previousLevel = player.level;
+  player.addExperience(quest.rewards.experience);
+  player.coins += quest.rewards.coins;
+  notifyQuestCompleted(quest);
+  const unlocked = checkAchievements(player);
+
+  const { pushCelebration } = useNotificationStore.getState();
+  pushCelebration({
+    kind: 'quest-complete',
+    questTitle: quest.title,
+    xpGained: quest.rewards.experience,
+    coinsGained: quest.rewards.coins,
+    achievementTitles: unlocked.map((a) => `${a.icon} ${a.title}`),
+  });
+  if (player.level > previousLevel) {
+    pushCelebration({ kind: 'level-up', newLevel: player.level });
+  }
+}
+
+function handleDailyChallenge(player: Player, performedKinds: DailyChallengeKind[]): void {
+  const today = toDateKey(new Date());
+  if (player.dailyChallengeDate === today) return;
+
+  const challenge = getTodaysChallenge();
+  if (!performedKinds.includes(challenge.kind)) return;
+
+  player.dailyChallengeDate = today;
+  const previousLevel = player.level;
+  player.addExperience(DAILY_CHALLENGE_REWARD.experience);
+  player.coins += DAILY_CHALLENGE_REWARD.coins;
+  pushNotification(
+    'Daily challenge complete!',
+    `${challenge.icon} ${challenge.title}: +${DAILY_CHALLENGE_REWARD.experience} XP, +${DAILY_CHALLENGE_REWARD.coins} coins.`
+  );
+  checkAchievements(player);
+  if (player.level > previousLevel) {
+    useNotificationStore.getState().pushCelebration({ kind: 'level-up', newLevel: player.level });
+  }
 }
 
 function reconstructQuest(q: Record<string, unknown>): Quest {
@@ -102,13 +107,19 @@ function reconstructAchievement(a: Record<string, unknown>): Achievement {
     description: a.description as string,
     icon: a.icon as string,
     rarity: a.rarity as AchievementRarity,
-    requirements: a.requirements as { type: AchievementRequirementType; value: number },
+    requirements: a.requirements as AchievementRequirements,
   });
   if (a.unlockedAt) ach.unlockedAt = new Date(a.unlockedAt as string);
   return ach;
 }
 
-function reconstructPlayer(raw: Record<string, unknown>): Player {
+function markOverdueQuests(player: Player): void {
+  player.quests.forEach((quest) => {
+    if (quest.isOverdue()) quest.failQuest();
+  });
+}
+
+export function reconstructPlayer(raw: Record<string, unknown>): Player {
   const player = new Player({ id: raw.id as string, username: raw.username as string });
   player.level = raw.level as number;
   player.experience = raw.experience as number;
@@ -120,6 +131,13 @@ function reconstructPlayer(raw: Record<string, unknown>): Player {
   player.achievements = ((raw.achievements as unknown[]) || []).map((a) =>
     reconstructAchievement(a as Record<string, unknown>)
   );
+  const rawStreak = raw.streak as Partial<StreakState> | undefined;
+  player.streak = {
+    currentStreak: rawStreak?.currentStreak ?? 0,
+    longestStreak: rawStreak?.longestStreak ?? 0,
+    lastActivityDate: rawStreak?.lastActivityDate ?? null,
+  };
+  player.dailyChallengeDate = (raw.dailyChallengeDate as string | null) ?? null;
   return player;
 }
 
@@ -163,6 +181,9 @@ export const usePlayerStore = create<PlayerState>()(
         set((state) => {
           if (!state.player) return state;
           state.player.addQuest(quest);
+          const kinds = [DailyChallengeKind.CreateQuest];
+          if (quest.category === FinancialCategory.Savings) kinds.push(DailyChallengeKind.CreateSavingsQuest);
+          handleDailyChallenge(state.player, kinds);
           return { player: clonePlayer(state.player) };
         }),
 
@@ -195,12 +216,17 @@ export const usePlayerStore = create<PlayerState>()(
           if (quest) {
             const wasCompleted = quest.status === QuestStatus.Completed;
             quest.updateProgress(amount);
-            if (quest.status === QuestStatus.Completed && !wasCompleted) {
-              state.player.addExperience(quest.rewards.experience);
-              state.player.coins += quest.rewards.coins;
-              notifyQuestCompleted(quest);
+            const justCompleted = quest.status === QuestStatus.Completed && !wasCompleted;
+            state.player.recordActivity();
+            if (justCompleted) {
+              grantQuestRewards(state.player, quest);
+            } else {
               checkAchievements(state.player);
             }
+            const kinds = [DailyChallengeKind.UpdateProgress];
+            if (quest.getProgressPercentage() >= 50) kinds.push(DailyChallengeKind.ReachHalf);
+            if (justCompleted) kinds.push(DailyChallengeKind.CompleteQuest);
+            handleDailyChallenge(state.player, kinds);
           }
           return { player: clonePlayer(state.player) };
         }),
@@ -211,10 +237,13 @@ export const usePlayerStore = create<PlayerState>()(
           const quest = state.player.quests.find((q) => q.id === questId);
           if (quest && quest.status !== QuestStatus.Completed) {
             quest.completeQuest();
-            state.player.addExperience(quest.rewards.experience);
-            state.player.coins += quest.rewards.coins;
-            notifyQuestCompleted(quest);
-            checkAchievements(state.player);
+            state.player.recordActivity();
+            grantQuestRewards(state.player, quest);
+            handleDailyChallenge(state.player, [
+              DailyChallengeKind.UpdateProgress,
+              DailyChallengeKind.ReachHalf,
+              DailyChallengeKind.CompleteQuest,
+            ]);
           }
           return { player: clonePlayer(state.player) };
         }),
@@ -231,7 +260,10 @@ export const usePlayerStore = create<PlayerState>()(
         try {
           const stored = persisted as Partial<{ player: Record<string, unknown> | null }>;
           if (!stored?.player) return { ...current, _hasHydrated: true };
-          return { ...current, player: reconstructPlayer(stored.player), _hasHydrated: true };
+          const player = reconstructPlayer(stored.player);
+          markOverdueQuests(player);
+          player.syncStreak();
+          return { ...current, player, _hasHydrated: true };
         } catch {
           return { ...current, _hasHydrated: true };
         }
