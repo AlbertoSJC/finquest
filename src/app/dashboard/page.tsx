@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { CategoryBar } from '@/components/dashboard/CategoryBar';
 import { CompletionPie } from '@/components/dashboard/CompletionPie';
 import { DailyChallenge } from '@/components/dashboard/DailyChallenge';
+import { ExchangeRates } from '@/components/dashboard/ExchangeRates';
 import { FinancialHealthScore } from '@/components/dashboard/FinancialHealthScore';
 import { FinancialMetrics } from '@/components/dashboard/FinancialMetrics';
 import { PlayerSummary } from '@/components/dashboard/PlayerSummary';
@@ -43,6 +44,7 @@ export default function Dashboard() {
           <CompletionPie player={player} />
           <CategoryBar player={player} />
           <ProgressLine player={player} />
+          <ExchangeRates />
         </section>
       </div>
     </main>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Player } from '@/domain/Player';
 import { usePlayerStore } from '@/stores/player';
 import { createDemoQuests } from '@/utils/fixtures';
@@ -12,12 +12,16 @@ const FEATURES = [
   { icon: '🎯', title: 'Set Financial Quests', desc: 'Turn savings goals, debt payoffs, and investments into trackable quests.' },
   { icon: '⭐', title: 'Level Up', desc: 'Earn XP and level up as you make financial progress. Reach new milestones.' },
   { icon: '🏆', title: 'Unlock Achievements', desc: 'Complete challenges to unlock badges and prove your financial mastery.' },
+  { icon: '🔥', title: 'Keep the Streak', desc: 'Daily challenges and activity streaks keep your money habits alive.' },
+  { icon: '📊', title: 'Health Score', desc: 'A composite 0–100 score shows how your finances are really doing.' },
+  { icon: '☁️', title: 'Sync Anywhere', desc: 'Try it instantly with no account — sign up later to sync across devices.' },
 ];
 
-function Onboarding() {
+function Landing() {
   const { initializePlayer } = usePlayerStore();
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
+  const formRef = useRef<HTMLFormElement>(null);
 
   function handleStart(e: React.FormEvent) {
     e.preventDefault();
@@ -35,30 +39,46 @@ function Onboarding() {
     initializePlayer(player);
   }
 
+  function focusForm() {
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    formRef.current?.querySelector('input')?.focus();
+  }
+
   return (
-    <main className="onboarding-root">
-      <div className="onboarding-card">
-        <div className="onboarding-hero">
-          <span className="onboarding-logo">⚔️</span>
-          <h1 className="onboarding-title">FinQuest</h1>
-          <p className="onboarding-subtitle">
-            Transform your financial goals into an epic adventure
-          </p>
+    <main className="landing-root">
+      <section className="landing-hero">
+        <span className="onboarding-logo">⚔️</span>
+        <h1 className="landing-title">FinQuest</h1>
+        <p className="landing-tagline">Personal finance, played like an RPG.</p>
+        <p className="landing-subtitle">
+          Turn savings goals into quests, earn XP for real progress, and watch your
+          Financial Health Score climb — no spreadsheet required.
+        </p>
+        <div className="landing-ctas">
+          <button className="btn btn-primary landing-cta" onClick={focusForm}>
+            Try the free demo
+          </button>
+          <Link href="/account" className="btn btn-secondary landing-cta">
+            Sign in
+          </Link>
         </div>
+        <p className="landing-note">No account needed — the demo runs entirely in your browser.</p>
+      </section>
 
-        <div className="onboarding-features">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="onboarding-feature">
-              <span className="onboarding-feature-icon">{f.icon}</span>
-              <div>
-                <strong>{f.title}</strong>
-                <p>{f.desc}</p>
-              </div>
+      <section className="landing-features">
+        {FEATURES.map((f) => (
+          <div key={f.title} className="onboarding-feature landing-feature">
+            <span className="onboarding-feature-icon">{f.icon}</span>
+            <div>
+              <strong>{f.title}</strong>
+              <p>{f.desc}</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
+      </section>
 
-        <form className="onboarding-form" onSubmit={handleStart}>
+      <section className="onboarding-card landing-form-card">
+        <form ref={formRef} className="onboarding-form" onSubmit={handleStart}>
           <label htmlFor="username" className="onboarding-label">
             What should we call you?
           </label>
@@ -69,7 +89,6 @@ function Onboarding() {
             onChange={(e) => { setUsername(e.target.value); setError(''); }}
             placeholder="Enter your hero name..."
             className={`form-input onboarding-input${error ? ' input-error' : ''}`}
-            autoFocus
             maxLength={24}
           />
           {error && <span className="error-message">{error}</span>}
@@ -77,7 +96,7 @@ function Onboarding() {
             Begin Your Adventure →
           </button>
         </form>
-      </div>
+      </section>
     </main>
   );
 }
@@ -161,7 +180,7 @@ export default function Home() {
     );
   }
 
-  if (!player) return <Onboarding />;
+  if (!player) return <Landing />;
 
   return <WelcomeHome player={player} />;
 }

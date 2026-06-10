@@ -2413,3 +2413,178 @@ p {
   margin: 0;
   font-weight: 600;
 }
+
+.account-section-title {
+  font-size: 1rem;
+  margin: 0 0 0.875rem;
+}
+
+.account-actions {
+  display: flex;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.account-message {
+  margin: 0.875rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.account-card--danger {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+/* Landing page */
+.landing-root {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.landing-hero {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.landing-title {
+  font-size: 3rem;
+  margin: 0.5rem 0 0;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.landing-tagline {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0.75rem 0 0.5rem;
+}
+
+.landing-subtitle {
+  max-width: 34rem;
+  margin: 0 auto 1.5rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.landing-ctas {
+  display: flex;
+  justify-content: center;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.landing-cta {
+  padding: 0.75rem 1.75rem;
+  font-size: 1rem;
+}
+
+.landing-note {
+  margin-top: 0.875rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.landing-feature {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+}
+
+.landing-form-card {
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+@media (max-width: 860px) {
+  .landing-features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .landing-features {
+    grid-template-columns: 1fr;
+  }
+  .landing-title {
+    font-size: 2.25rem;
+  }
+}
+
+/* Exchange rates widget */
+.rates-subtitle {
+  margin: 0 0 0.875rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.rates-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.rates-row {
+  display: grid;
+  grid-template-columns: 1.75rem 3rem 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--bg-secondary);
+  border-radius: 0.5rem;
+}
+
+.rates-flag {
+  font-size: 1.1rem;
+}
+
+.rates-code {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.rates-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.rates-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.rates-date {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.rates-error,
+.rates-loading {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}

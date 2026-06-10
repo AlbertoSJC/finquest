@@ -17,6 +17,9 @@ export default function AccountPage() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [settingsMessage, setSettingsMessage] = useState('');
+  const [deletePassword, setDeletePassword] = useState('');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -38,6 +41,40 @@ export default function AccountPage() {
 
   async function handleSignOut() {
     await authClient.signOut();
+    router.refresh();
+  }
+
+  function handleExport() {
+    if (!player) {
+      setSettingsMessage('No local player data to export yet.');
+      return;
+    }
+    const blob = new Blob([JSON.stringify(player, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `finquest-${player.username.toLowerCase().replace(/\s+/g, '-')}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setSettingsMessage('Your data was downloaded as JSON.');
+  }
+
+  async function handleDeleteCloudData() {
+    const response = await fetch('/api/player', { method: 'DELETE' });
+    setSettingsMessage(
+      response.ok ? 'Cloud data deleted. Your local progress is untouched.' : 'Could not delete cloud data.'
+    );
+  }
+
+  async function handleDeleteAccount(event: React.FormEvent) {
+    event.preventDefault();
+    setSettingsMessage('');
+    const result = await authClient.deleteUser({ password: deletePassword });
+    if (result.error) {
+      setSettingsMessage(result.error.message ?? 'Account deletion failed.');
+      return;
+    }
+    router.push('/');
     router.refresh();
   }
 
@@ -65,6 +102,60 @@ export default function AccountPage() {
             <button className="btn btn-secondary" onClick={handleSignOut}>
               Sign out
             </button>
+          </div>
+
+          <div className="account-card">
+            <h2 className="account-section-title">Your data</h2>
+            <div className="account-actions">
+              <button className="btn btn-secondary" onClick={handleExport}>
+                Export data (JSON)
+              </button>
+              <button className="btn btn-secondary" onClick={handleDeleteCloudData}>
+                Delete cloud data
+              </button>
+            </div>
+            {settingsMessage && <p className="account-message">{settingsMessage}</p>}
+          </div>
+
+          <div className="account-card account-card--danger">
+            <h2 className="account-section-title">Danger zone</h2>
+            {!confirmingDelete ? (
+              <button className="btn btn-danger" onClick={() => setConfirmingDelete(true)}>
+                Delete account…
+              </button>
+            ) : (
+              <form className="account-form" onSubmit={handleDeleteAccount}>
+                <p className="account-status">
+                  This permanently removes your account and synced data. Enter your password to confirm.
+                </p>
+                <label>
+                  Password
+                  <input
+                    type="password"
+                    className="form-input"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                  />
+                </label>
+                <div className="account-actions">
+                  <button className="btn btn-danger" type="submit">
+                    Permanently delete
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    type="button"
+                    onClick={() => {
+                      setConfirmingDelete(false);
+                      setDeletePassword('');
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </main>

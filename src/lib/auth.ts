@@ -7,4 +7,12 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  user: {
+    deleteUser: {
+      enabled: true,
+      beforeDelete: async (user) => {
+        await prisma.playerProfile.deleteMany({ where: { userId: user.id } });
+      },
+    },
+  },
 });

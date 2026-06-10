@@ -45,3 +45,13 @@ export async function PUT(request: Request) {
 
   return NextResponse.json({ ok: true, updatedAt: profile.updatedAt });
 }
+
+export async function DELETE() {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  await prisma.playerProfile.deleteMany({ where: { userId: session.user.id } });
+  return NextResponse.json({ ok: true });
+}
