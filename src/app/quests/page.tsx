@@ -9,6 +9,7 @@ import { QuestStatus, QuestPriority, FinancialCategory } from '@/enums/finquestE
 import { QuestForm } from '@/components/quests/QuestForm';
 import { QuestGrid } from '@/components/quests/QuestGrid';
 import { QuestFilter } from '@/components/quests/QuestFilter';
+import { Modal } from '@/components/common/Modal';
 import { useQuestFilter } from '@/hooks/useQuestFilter';
 
 export default function QuestsPage() {
@@ -161,62 +162,67 @@ export default function QuestsPage() {
           <button
             className="btn btn-primary"
             onClick={() => {
-              setShowCreateForm((prev) => !prev);
+              setShowCreateForm(true);
               setEditingQuest(null);
             }}
           >
-            {showCreateForm ? 'Cancel' : '+ Create Quest'}
+            + Create Quest
           </button>
         </div>
 
-        {showCreateForm && (
-          <div className="create-form-container">
-            <QuestForm
-              onSubmit={handleCreateQuest}
-              onCancel={() => setShowCreateForm(false)}
-            />
-          </div>
-        )}
-
-        {editingQuest && (
-          <div className="create-form-container">
-            <QuestForm
-              key={editingQuest.id}
-              initialData={editingQuest}
-              onSubmit={handleSaveEdit}
-              onCancel={() => setEditingQuest(null)}
-            />
-          </div>
-        )}
-
-        {updatingQuestId && (
-          <div className="update-progress-container">
-            <h3>Update Quest Progress</h3>
-            <p>
-              Enter a new current amount for{' '}
-              <strong>{player.quests.find((q) => q.id === updatingQuestId)?.title}</strong>.
-            </p>
-            <div className="update-progress-controls">
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={progressInput}
-                onChange={(event) => {
-                  setProgressInput(event.target.value);
-                  setProgressError(null);
-                }}
+        <AnimatePresence>
+          {showCreateForm && (
+            <Modal title="Create Quest" onClose={() => setShowCreateForm(false)}>
+              <QuestForm
+                onSubmit={handleCreateQuest}
+                onCancel={() => setShowCreateForm(false)}
               />
-              <button className="btn btn-primary" onClick={handleSubmitProgress}>
-                Save
-              </button>
-              <button className="btn btn-secondary" onClick={handleCancelProgress}>
-                Cancel
-              </button>
-            </div>
-            {progressError && <p className="form-error">{progressError}</p>}
-          </div>
-        )}
+            </Modal>
+          )}
+
+          {editingQuest && (
+            <Modal title="Edit Quest" onClose={() => setEditingQuest(null)}>
+              <QuestForm
+                key={editingQuest.id}
+                initialData={editingQuest}
+                onSubmit={handleSaveEdit}
+                onCancel={() => setEditingQuest(null)}
+              />
+            </Modal>
+          )}
+
+          {updatingQuestId && (
+            <Modal title="Update Quest Progress" onClose={handleCancelProgress}>
+              <p>
+                Enter a new current amount for{' '}
+                <strong>{player.quests.find((q) => q.id === updatingQuestId)?.title}</strong>.
+              </p>
+              <div className="update-progress-controls">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  autoFocus
+                  value={progressInput}
+                  onChange={(event) => {
+                    setProgressInput(event.target.value);
+                    setProgressError(null);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') handleSubmitProgress();
+                  }}
+                />
+                <button className="btn btn-primary" onClick={handleSubmitProgress}>
+                  Save
+                </button>
+                <button className="btn btn-secondary" onClick={handleCancelProgress}>
+                  Cancel
+                </button>
+              </div>
+              {progressError && <p className="form-error">{progressError}</p>}
+            </Modal>
+          )}
+        </AnimatePresence>
 
         <AnimatePresence>
           {progressFloat && (

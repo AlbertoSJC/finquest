@@ -955,19 +955,65 @@ p {
   margin-bottom: 1.5rem;
 }
 
-.create-form-container {
-  animation: slideDown 0.3s ease-out;
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.65);
+  backdrop-filter: blur(4px);
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.modal-card {
+  background: var(--bg-primary);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 34rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.modal-header h3 {
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: var(--text-primary);
+}
+
+.modal-card .quest-form {
+  background: none;
+  padding: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+
+.modal-card > p {
+  margin: 0 0 1rem 0;
 }
 
 .empty-state {
@@ -1029,6 +1075,21 @@ p {
 
 .chart-card h3 {
   margin: 0 0 1rem 0;
+}
+
+.chart-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.chart-empty p {
+  margin: 0;
 }
 
 .dashboard-grid {
@@ -1302,23 +1363,6 @@ p {
 }
 
 /* Progress Update */
-.update-progress-container {
-  background: var(--bg-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid var(--secondary);
-}
-
-.update-progress-container h3 {
-  margin: 0 0 0.5rem 0;
-}
-
-.update-progress-container p {
-  margin: 0 0 1rem 0;
-}
-
 .update-progress-controls {
   display: flex;
   gap: 0.75rem;
